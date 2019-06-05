@@ -1,0 +1,38 @@
+module DMEM (clk, rst_n, MemRW, Addr, DataR, DataW);
+parameter DATA_WIDTH = 32;
+parameter ADDR_WIDTH = 32;
+
+input  clk;
+input  rst_n;
+input  MemRW;
+input  [ADDR_WIDTH-1:0] Addr;
+input  [DATA_WIDTH-1:0] DataW;
+output [DATA_WIDTH-1:0] DataR;
+reg    [DATA_WIDTH-1:0] DataR;
+
+
+reg [31:0] DMEM [0:31];
+
+
+always @(*) begin
+   if (!rst_n) begin
+      DataR = 32'h0000_0000;
+   end else if(MemRW ==1'b0) begin
+      DataR <= DMEM[Addr];
+      $display("DMEM[Addr] = %d", Addr);
+   end else begin
+      DataR <= DataR;
+   end
+
+end
+
+always @(posedge clk) begin
+   if (MemRW ==1'b1) begin
+      DMEM[Addr] <= DataW;
+      $display("DMEM[Addr] = %d", DMEM[Addr]);
+   end else begin
+      DMEM[Addr] <= DMEM[Addr];
+   end
+end
+
+endmodule
