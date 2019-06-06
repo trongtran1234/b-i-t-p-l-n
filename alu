@@ -4,7 +4,7 @@ module alu (ALUSel, ALUOut, Reg_1, Reg_2);
 parameter CONTROL_WIDTH = 4;
 parameter DATA_WIDTH    = 32;
 
-input  [CONTROL_WIDTH-1:0] ALUSel;
+input   [CONTROL_WIDTH-1:0] ALUSel;
 input   [DATA_WIDTH-1:0]    Reg_1;
 input   [DATA_WIDTH-1:0]    Reg_2;
 output  [DATA_WIDTH-1:0]    ALUOut;
@@ -16,8 +16,9 @@ wire    [DATA_WIDTH-1:0]    and_ALUOut;
 wire    [DATA_WIDTH-1:0]    or_ALUOut;
 wire    [DATA_WIDTH-1:0]    xor_ALUOut;
 wire    [DATA_WIDTH-1:0]    shr_ALUOut;
-wire    [DATA_WIDTH-1:0]    less_than;
-wire    [DATA_WIDTH-1:0]    greater_than;
+wire    [DATA_WIDTH-1:0]    shr_ALUOut_A;
+wire    [DATA_WIDTH-1:0]    less_than_signed;
+wire    [DATA_WIDTH-1:0]    less_than_unsigned;
 wire                        sign;
 
 
@@ -26,11 +27,12 @@ assign diff         = Reg_1 - Reg_2;
 assign and_ALUOut   = Reg_1 & Reg_2;
 assign or_ALUOut    = Reg_1 | Reg_2;
 assign xor_ALUOut   = Reg_1 ^ Reg_2;
-assign less_than    = Reg_1 < Reg_2;
-assign greater_than = Reg_1 > Reg_2;
+assign less_than_signed    = $signed(Reg_1) < $signed(Reg_2);
+assign less_than_unsigned = Reg_1 < Reg_2;
 assign shl_ALUOut   = Reg_1 << Reg_2[4:0];
-assign sign         = Reg_1[31] & (ALUSel == 7);
-assign shr_ALUOut   = { {32{sign}}, Reg_1 } >> Reg_2[4:0];
+assign sign         = Reg_1[31];
+assign shr_ALUOut   = Reg_1 >> Reg_2[4:0];
+assign shr_ALUOut_A   = { {32{sign}}, Reg_1 } >> Reg_2[4:0];
 
 
 always @ (*) begin
@@ -42,11 +44,12 @@ always @ (*) begin
       4'b0100: ALUOut = xor_ALUOut;         // Xor
       4'b0001: ALUOut = shl_ALUOut;         // SHL
       4'b0101: ALUOut = shr_ALUOut;         // SHR
-      4'b0101: ALUOut = shr_ALUOut;         // SHRA
-      4'b0010: ALUOut = less_than;          // less than
-      4'b1101: ALUOut = greater_than;       // greater than
+      4'b1101: ALUOut = shr_ALUOut_A;         // SHRA
+      4'b0010: ALUOut = less_than_signed;          // less than
+      4'b0011: ALUOut = less_than_unsigned;       // greater than
       4'b1111: ALUOut = Reg_2;
       default: ALUOut = Reg_1;              // through
    endcase
 end
 endmodule
+
