@@ -37,19 +37,18 @@ assign shr_ALUOut_A   = { {32{sign}}, Reg_1 } >> Reg_2[4:0];
 
 always @ (*) begin
    case (ALUSel)
-      4'b0000: ALUOut = sum;                // Add
-      4'b1000: ALUOut = diff;               // Subtract
-      4'b0111: ALUOut = and_ALUOut;         // And
-      4'b0110: ALUOut = or_ALUOut;          // Or
-      4'b0100: ALUOut = xor_ALUOut;         // Xor
-      4'b0001: ALUOut = shl_ALUOut;         // SHL
-      4'b0101: ALUOut = shr_ALUOut;         // SHR
-      4'b1101: ALUOut = shr_ALUOut_A;         // SHRA
-      4'b0010: ALUOut = less_than_signed;          // less than
-      4'b0011: ALUOut = less_than_unsigned;       // greater than
+      4'b0000: ALUOut = sum;
+      4'b1000: ALUOut = diff;
+      4'b0111: ALUOut = and_ALUOut;
+      4'b0110: ALUOut = or_ALUOut;
+      4'b0100: ALUOut = xor_ALUOut;
+      4'b0001: ALUOut = shl_ALUOut;
+      4'b0101: ALUOut = shr_ALUOut;
+      4'b1101: ALUOut = shr_ALUOut_A;
+      4'b0010: ALUOut = less_than_signed;
+      4'b0011: ALUOut = less_than_unsigned;
       4'b1111: ALUOut = Reg_2;
-      default: ALUOut = Reg_1;              // through
+      default: ALUOut = Reg_1;
    endcase
 end
 endmodule
-
