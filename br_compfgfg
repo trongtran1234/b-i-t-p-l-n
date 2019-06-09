@@ -7,7 +7,7 @@ module br_comp (br_in_1, br_in_2, BrUn, BrEq, BrLt);
    output                 BrEq;
    output                 BrLt;
 
-   reg                    BrEq;
+   wire                   BrEq;
    reg                    BrLt;
 
    always @ (*) begin
@@ -32,3 +32,4 @@ module br_comp (br_in_1, br_in_2, BrUn, BrEq, BrLt);
    assign BrEq = (br_in_1==br_in_2)?1'b1:1'b0;
 
 endmodule
+
