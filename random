@@ -1,0 +1,53 @@
+Cách tạo tín hiệu random trong môi trường uvm, sự khác biệt giữa uvm_do, uvm_do_with, uvm_do_on_with.
+Như trong các bài trước, mình đã trình bày cách tạo các tín hiệu random cho khối sequence sử dụng trong môi trường uvm. Hôm nay mình sẽ hướng dẫn chi tiết hơn các cách tạo tín hiệu random. Bên cạnh đó là sự khác biệt giữa uvm_do, uvm_do_with, uvm_do_on_with…
+
+Trong một vài môi trường uvm nhỏ thì cách tốt nhất để tạo một tín hiệu random là sử dụng cặp tín hiệu “start_item/finish_item”. Với cách tạo này, ta có thể tạo ra nhiều tín hiệu random với cùng 1 loại.
+ 
+start_item/finish_item/uvm_do* : Có thể tạo ra các tín hiệu random cùng loại, cùng constraint được define ban đầu trong khối transaction.
+Start() method/uvm_do* : Có thể tạo ra các sub_sequence với các constraint khác nhau.
+Ví dụ mình muốn tạo 1 tín hiệu random bằng cặp “start_item/finish_item” mình có code bên dưới:
+
+virtual task body ();
+      data_obj = my_data::type_id::create ("data_obj");
+      repeat (n_times) begin
+         start_item (data_obj);
+         assert (data_obj.randomize ());
+         finish_item (data_obj);
+      end
+endtask
+
+Cách trên sử dụng dòng “assert (data_obj.randomize ())”. Một cách khác nữa là:
+      start_item(data_obj);
+         if(!get_trans(data_obj))begin
+           `uvm_fatal("ALU_SEQ", "Randomized trans failed!")
+         end
+      finish_item(data_obj);
+Hoặc
+      start_item(data_obj);
+         if( !data_obj.randomize() )begin
+           `uvm_fatal("ALU_SEQ", "Randomized trans failed!")
+         end
+      finish_item(data_obj);
+Các cách trên mô tả quá trình tạo tín hiệu random với các constraint được định nghĩa sẵn trong khối transaction. Trong một vài trường hợp nếu bạn cần tạo quá nhiều tín hiệu với những contrainst thay đổi khác nhau, constrain kéo theo, Bạn có thể sử dụng theo cách thay dòng  “assert (add_trans.randomize () );” bằng dòng bên dưới:
+      assert (add_trans.randomize () with {add_trans.in_1 inside {[0:1]};});
+
+Sử dụng macro uvm_do*
+Nếu bạn tạo tín hiệu random với uvm_do, bạn chỉ cần define như sau:
+    repeat (20) begin
+    `uvm_do(data_obj)
+    end
+Nó tương tự như cấu trúc “start_item/finish_item” như bên trên. Thực tế sử dụng cả hai là như nhau.
+Thế thì uvm_do_with thì như thế nào ?
+    repeat (20) begin
+    `uvm_do_with(data_obj,{data_obj.in_1 inside {[0:15]};data_obj.in_2 inside {[0:15]};})
+    End
+Với uvm_do_with bạn có thể đặt lại constraint cho các biến trong từng dòng.
+Còn lại là uvm_do_on_with 
+repeat (20) begin
+   `uvm_do_on_with(data_obj, p_sqr.sqr1, {data_obj.in_1 inside {[0:15]};})
+end
+Bạn có thể thêm sequencer trong câu lệnh này để sequencer thực hiện sequence.
+
+Trong các dự án SoC thực tế người ta hay dùng uvm_do_on_with, nó vừa giúp bạn tạo các constraint cho từng transaction cụ thể mà ko thay đổi constraint ban đầu. 
+Ngoài ra ta còn có một số uvm_do* khác chẳng hạn như: uvm_do*pri*.
+
