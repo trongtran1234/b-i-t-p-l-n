@@ -1,0 +1,372 @@
+Trong bài này ta sẽ thiết kế một máy vending machine 4 trạng thái bao gồm:
++ Trạng thái nghĩ (IDLE state): Máy không làm gì cả.
++ Trạng thái nhận tiền (RECEIVE state): Khi có tiền được đưa vào, máy chuyển sang trạng thái nhận tiền.
++ Trạng thái trả ra nước (RETURN state): Khi nút chọn được nhấn máy sẽ trả ra loại nước được chọn.
++ Trạng thái hoàn tiền lại (CHANGE state): Hoàn lại tiền còn dư.
+
+Máy vending machine của chúng ta có các input như sau:
++ clk
++ rst_n
++ in_cost: 2 bits dữ liệu gồm
+•	00: Không có tiền được nhận vào
+•	01: Nhận 1000 VND vào
+•	10: Nhận 2000 VND vào
+•	11: Nhận 5000 VND vào
+
++ R_M (Return money): 1 bit dữ liệu khi muốn trả lại tiền được thối tín hiệu này có giá trị là 1.
++ SI (Soft drink input): 1 bit dữ liệu Máy sẽ trả ra nước ngọt khi nút này bật lên 1 
++ WI (Water input): 1 bit dữ liệu, máy sẽ rả ra nước lọc khi nút này bật lên 1
+
+Chúng ta có 6 output đầu ra như bên dưới:
+SO (soft drink out): 1 bit dữ liệu, Trả ra nước ngọt khi bằng 1 ngược lại là 0.
+WO (water out): 1 bit dữ liệu, Trả ra nước lọc khi bằng 1 ngược lại là 0.
+R_1 (Return 1000): Trả ra tiền thối mệnh giá 1000k (Cách tính: nếu R_1 = 1 thì mệnh giá ra là 1x1000 = 1000 VND, nếu R_1 = 5 tiền trả ra là 5 tờ mệnh giá 1000 VND tổng là 5x1000 = 5000 VND).
+R_2 (Return 2000): Trả lại tiền thối mệnh giá 2000 VND, Cách tính như trên.
+R_5 (Return 5000): Trả lại tiền thối mệnh giá 5000 VND, Cách tính như trên.
+Err_sig: Nếu có error xảy ra thì tín hiệu này lên 1. Máy nhảy sang trạng thái CHANGE state và sau đó reset bật lên 1.
+
+Tiền nhận vào là lần lượt còn tiền tiền thói lại sẽ được thói một lần. điều này tương tự như máy ATM. Người mua hàng không thể một lần cho vào nhiều số tiền được mà phải đưa vào lần lượt. Tuy nhiên khi nhận tiền thói thì sẽ nhận một lần.
+
+Mô tả chi tiết từng trạng thái như sau:
+IDLE_STATE: Đây là trạng thái ban đầu của máy vending machine. Khi không được sử dụng hay nói đúng hơn là không có tiền được đưa vào máy sẽ giữ trạng thái IDLE.
+RECEIVE_STATE: Máy sẽ chuyển từ trạng thái IDLE_STATE sang trạng thái RECEIVE_STATE khi có tiền được đưa vào. Tiền đưa vào bao gồm các mệnh giá : 1000 VND, 2000 VND, 5000 VND.  Tại đây có một biến sum dùng để tính toán tổng số tiền được đưa vào.
+Từ trạng thái này máy sẽ chuyển sang trạng thái CHANGE_STATE khi nút nhấn R_M được nhấn (Mang giá trị là 1).
+Từ trạng thái này máy sẽ chuyển sang trạng thái RETURN_STATE khi người dùng ngừng bỏ tiền vào và nhấn nút chọn sản phẩm.
+          WI : Chọn nước lọc.
+          SI: Chọn nước ngọt.
+Nếu các điều kiện trên đều không được đáp ứng máy sẽ giữ trạng thái RECEIVE_STATE.
+RETURN_STATE: Trạng thái này sẽ trả ra nước ngọt hoặc nước lọc tuỳ vào người dùng chọn.
+Tuy nhiên, Phải có điều kiện. Giả sử người dùng bỏ tổng số tiền vào là 5000 VND và chọn mua nước ngọt giá 9000 VND. Điều này là không thể. Ta sẽ thêm điều kiện cho biến sum như bên dưới:
+Nếu chọn nước ngọt (SI = 1) thì sum >= 9000 VND.
+Nếu chọn nước lọc (WI = 1) thì sum >= 7000 VND.
+Nếu không thoả điều kiện máy sẽ quay lại trạng thái RECEIVE_STATE.
+Nếu thoã điều kiện có 2 trường hợp xảy ra (Biến sum sẽ bị trừ đi giá trị tương ứng với loại nước ngọt)
+Số 1: Người dùng không muốn nhận tiền thói và tiếp tục mua hàng khi đó ( sẽ có tiền bỏ vào và giá trị R_M = 0) lúc này chúng ta chuyển từ trạng thái hiện tại sang trạng thái RECEIVE_STATE.
+Số 2: Người dùng nhận lại tiền thói (R_M = 1) và không mua nữa (Không có tiền bỏ vào) lúc này máy chuyển sang trạng thái CHANGE_STATE.
+CHANGE_STATE: Trạng thái này sẽ trả lại tiền được thói một lần. Có 3 biến
+R_1: Trả lại tiền mệnh giá 1000 VND. Số lượng đồng một ngàn phụ thuộc vào giá trị R_1. Ví dụ : R_1 = 1 => có 1 đồng mang giá trị 1000 VND. Nếu R_1 = 4 => có 4 đồng mang giá trị 1000 VND.
+R_2: Trả lại tiền mệnh giá 2000 VND.
+R_5: Trả lại tiền mệnh giá 5000 VND.
+Sau khi thói lại tiền nếu không có tiền đưa vào tại chu kì kế tiếp máy sẽ chuyển sang trạng thái IDLE_STATE. Nếu có tiền đưa vào chu kì kế tiếp máy sẽ chuyển sang trạng thái RECEIVE_STATE.
+ 
+Thuật toán tính toán giá trị thói lại.
+Ở đây ta dùng thuật toán chia lấy phần dư và chia lấy nguyên.
+Ta có biến sum = tổng số tiền sau khi mua và cần được thói lại. Như vậy số mệnh giá 5000 được tính theo code Verilog như bên dưới:
+always @(…….
+R_5 = sum/5;
+R_2 = (sum%5)/2;
+R_1 = (sum%5)%2;
+end
+
+R_5: Lấy tổng tiền chia 5 lấy phần nguyên ví dụ 18.000 VND chia cho 5 lấy nguyên ta có 3 đồng mệnh giá 5000 VND.
+R_2: Lấy phần dư khi chia sum cho 5 chia lấy nguyên cho 2. Ví dụ ta có 18.000 VND chia cho 5 dư 3. Lấy 3 chia cho 2 lấy phần nguyên là 1.
+R_1: Cái này tương đối đơn giản lấy phần dư khi chia cho 5 lấy chia cho 2 và tiếp tục lấy phần dư của nó (xoắn nảo, hehe) ta được R_1.
+
+
+Giớ hạn của code Verilog này: Có một vấn đề mà em trăng trở đó là cách control biến sum.
+Hiện em sử dụng dòng
+always @ (posedge clk or state) begin
+Điều này là hạn chế trong việc tổng hợp (Synthesis) nếu thay dòng này bằng dòng
+always @(*) begin
+Với dòng trên ta có thể tổng hợp được tuy nhiên quá trình simulation sẽ bị treo vì có sự xung đột về cách control biến sum. Trong vòng lập trên biến sum vừa là điều kiện vừa là biến sẽ bị thay đổi giá trị. 
+Điều đó dẫn đến kết quả là nếu sum thay đổi giá trị sum sẽ mang giá trị khác dẫn đến sum biến đổi.
+Tuy nhiên nếu dành cho simulation điều này không gây ra lỗi.
+
+Verilog code:
+
+//Author: TrongTran
+//Date: 01/03/2019
+
+module vending_machine (clk, rst_n, in_cost, R_M, SI, WI, SO, WO, R_1, R_2, R_5, err_sig);
+
+
+// Define money
+parameter M_1 = 2'b01;        //Define 1.000d
+parameter M_2 = 2'b10;        //Define 2.000d
+parameter M_5 = 2'b11;        //Define 5.000d
+parameter MAX_COST = 4'b1001; //Define 9.000d
+
+
+// Define state
+parameter IDLE_STATE    = 2'b00; //Do nothing
+parameter RECEIVE_STATE = 2'b01; //Receive money
+parameter RETURN_STATE  = 2'b10; //Rerurn soft drink
+parameter CHANGE_STATE  = 2'b11; //Charge money
+
+// Declare input signal
+input clk;           //Define clock signal
+input rst_n;         //Define reset signal
+input [1:0] in_cost; //Input money
+input R_M;           //Return money
+input SI;            //Choose soft drink
+input WI;            //Choose water
+
+// Declare output signal
+output SO; // Return soft drink
+output WO; // Return water
+output [3:0] R_1;
+output [3:0] R_2;
+output [3:0] R_5;
+output err_sig;
+
+// Declare reg and wire
+reg        SO;
+reg        WO;
+reg        err_sig;
+reg  [7:0] sum;
+reg  [7:0] sum_tmp;
+reg  [3:0] money;
+reg  [1:0] state;
+reg  [1:0] next_state;
+reg  [3:0] R_1;
+reg  [3:0] R_2;
+reg  [3:0] R_5;
+wire [3:0] cost;
+
+
+assign cost =  (in_cost == M_1)? 4'b0001:
+               (in_cost == M_2)? 4'b0010:
+               (in_cost == M_5)? 4'b0101:4'b0000;
+
+assign money = (SI == 1'b1)? 4'b1001:
+               (WI == 1'b1)? 4'b0111:4'b0000;
+
+
+always @ (*) begin
+  case(state)
+     IDLE_STATE: begin
+        $display ("IDLE_STATE");
+        if (in_cost != 2'b00) begin
+           next_state = RECEIVE_STATE;
+        end
+        else begin
+           next_state = IDLE_STATE;
+        end
+     end
+     RECEIVE_STATE: begin
+        if (R_M == 1'b1) begin
+           next_state = CHANGE_STATE;
+        end else if ((SI == 1'b1)||(WI == 1'b1)) begin
+           next_state = RETURN_STATE;
+        end else begin
+           next_state = RECEIVE_STATE;
+        end
+     end
+     RETURN_STATE: begin
+        if (R_M == 1'b1) begin
+           next_state = CHANGE_STATE;
+        end else if (in_cost != 2'b00) begin
+           next_state = RECEIVE_STATE;
+        end else begin
+           next_state = RETURN_STATE;
+        end
+     end
+     CHANGE_STATE: begin
+        if (in_cost != 2'b00) begin
+          next_state = RECEIVE_STATE;
+        end  else begin
+          next_state = IDLE_STATE;
+        end
+
+     end
+     default: begin
+          next_state = IDLE_STATE;
+     end
+  endcase
+end
+
+
+
+always @(posedge clk or negedge rst_n) begin
+   if (!rst_n) begin
+      state <= IDLE_STATE;
+   end else begin
+     state <= next_state;
+   end
+end
+
+
+
+
+
+always @ (posedge clk or state) begin
+   case (state)
+      IDLE_STATE: begin
+         SO      = 1'b0;
+         WO      = 1'b0;
+         R_1     = 4'b0000;
+         R_2     = 4'b0000;
+         R_5     = 4'b0000;
+         sum_tmp = 8'b0000_0000;
+//         sum     = sum_tmp + cost;
+         sum     = 8'b0000_0000;
+      end
+      RECEIVE_STATE: begin
+         SO      = 1'b0;
+         WO      = 1'b0;
+         R_1     = 4'b0000;
+         R_2     = 4'b0000;
+         R_5     = 4'b0000;
+         sum     = sum + cost;
+      end
+      RETURN_STATE: begin
+         if ((SI == 1'b1)&&(WI == 1'b0)&&(sum >= 8'b0000_1001)) begin
+            SO      = 1'b1;
+            WO      = 1'b0;
+            R_1     = 4'b0000;
+            R_2     = 4'b0000;
+            R_5     = 4'b0000;
+            sum     = sum - 8'b0000_1001;
+         end else if ((SI == 1'b0)&&(WI == 1'b1)&&(sum >= 8'b0000_0111)) begin
+            SO      = 1'b0;
+            WO      = 1'b1;
+            R_1     = 4'b0000;
+            R_2     = 4'b0000;
+            R_5     = 4'b0000;
+            sum     = sum - 8'b0000_0111;
+//         end else if ((SI == 1'b1)&&(WI == 1'b1)&&(sum_tmp >= 8'b0001_0000)) begin
+//            SO      = 1'b1;
+//            WO      = 1'b1;
+//            R_1     = 4'b0000;
+//            R_2     = 4'b0000;
+//            R_5     = 4'b0000;
+//            sum     = sum_tmp - 8'b0001_0000;
+         end else begin
+            SO      = 1'b0;
+            WO      = 1'b0;
+            R_1     = 4'b0000;
+            R_2     = 4'b0000;
+            R_5     = 4'b0000;
+            sum     = sum;
+         end
+      end
+      CHANGE_STATE: begin
+         SO      = 1'b0;
+         WO      = 1'b0;
+         R_5     = sum/5;
+         R_2     = (sum%5)/2;
+         R_1     = (sum%5)%2;
+         sum     = 8'b0000_0000;
+      end
+      default: begin
+         SO      = 1'b0;
+         WO      = 1'b0;
+         R_1     = 4'b0000;
+         R_2     = 4'b0000;
+         R_5     = 4'b0000;
+         sum     = 8'b0000_0000;
+      end
+   endcase
+end
+
+endmodule
+
+Testbench:
+
+
+//Author: TrongTran
+//Date  : 05/09/2019
+//Module: ALU 4 bit data testbench
+`timescale 1ns/1ns
+`include "vending_machine.v"
+module vending_machine_tb ();
+
+reg clk;           //Define clock signal
+reg rst_n;         //Define reset signal
+reg [1:0] in_cost; //Input money
+reg R_M;           //Return money
+reg SI;            //Choose soft drink
+reg WI;            //Choose water
+
+wire SO; // Return soft drink
+wire WO; // Return water
+wire [3:0] R_1;
+wire [3:0] R_2;
+wire [3:0] R_5;
+wire err_sig;
+
+
+vending_machine vending_machine_0 (.clk(clk), .rst_n(rst_n), .in_cost(in_cost), .R_M(R_M), .SI(SI), .WI(WI), .SO(SO), .WO(WO), .R_1(R_1), .R_2(R_2), .R_5(R_5), .err_sig(err_sig));
+
+initial begin
+$monitor ("t = %d, state = %d", $time, vending_machine_0.state);
+end
+
+initial begin
+ clk = 0;
+   forever #10 clk = ~clk;
+#2000;
+$finish;
+end
+
+
+initial begin
+  rst_n = 1;
+   R_M = 0;
+   WI= 0;
+   SI = 0;
+   #50;
+   in_cost = 2'b01;
+   #20;
+   in_cost = 2'b00;
+   #20;
+   in_cost = 2'b10;
+   #20;
+   in_cost = 2'b00;
+   #20;
+   in_cost = 2'b11;
+   #20;
+   in_cost = 2'b00;
+   #20;
+   in_cost = 2'b11;
+   #20;
+   in_cost = 2'b00;
+   #20;
+   in_cost = 2'b11;
+   #60;
+   in_cost = 2'b00;
+   SI = 1;
+   #20;
+   SI = 0;
+   #20;
+   SI = 1;
+   #20;
+   SI = 0;
+   in_cost = 2'b11;
+   #20;
+   in_cost = 2'b00;
+   R_M = 1;
+   #20;
+   R_M = 0;
+   #100;
+   R_M = 1;
+   in_cost = 2'b00;
+   #20;
+   R_M = 0;
+   #100;
+   $finish;
+end
+
+
+
+//initial
+//if ($test$plusargs("postprocess")) begin
+//   $vcdpluson(0,vending_machine_tb);
+//   $vcdplustraceon(vending_machine_tb);
+//   $vcsplusdeltacycleon;
+//   $vcdplusglitchon;
+//end
+
+
+
+initial begin
+
+//  $dumpall("dump_1.vcd");
+//  $dumpvars(0, vending_machine_tb);
+   $vcdplusfile("vending_machine_1.vpd");
+   $vcdpluson();
+end
+
+
+endmodule
+
