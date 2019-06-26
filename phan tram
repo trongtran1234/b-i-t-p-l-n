@@ -1,0 +1,20 @@
+PHẦN TRĂM CHÍNH XÁC CỦA CÁC PHƯƠNG PHÁP THEO QUÁ TRÌNH TEST THỰC TẾ VÀ LÍ GIẢI.
+
+
+Số mẫu kiểm tra 2730 mẫu.
+Số kí tự kiểm tra 39 kí tự từ 0-9,a-z.
+Loại chữ: chữ thường.
+Fond: times new roman.
+Mỗi kí tự test : 70 mẫu mỗi kí tự.
+
+1. Phương pháp biểu đồ chiếu tỉ lệ 97,1136 %
+
+2.Phương pháp chu tuyến tỉ lệ  91,487%
+
+3.Phương pháp wavelet haar tỉ lệ 94,4242%
+
+4.Phương pháp trọng số vùng tỉ lệ 98,688 %
+
+5.Các phương pháp kết hợp hai trong số các phương pháp trên đạt tỉ lệ không cao thường khoảng 93% do không nhận dạng được chữ i,l,1 và d, đ và 8,g.
+- Ta thấy sở dĩ không đạt 100% do ở loại fond này chữ l và i nếu ta tách dấu chấm trên đầu chữ i thì i và l giống nhau đến 90 % vì thế với phương pháp trọng số vùng ta sai ở nhận dạng chữ này tuy nhiên các chữ còn lại hầu như nhận dạng rất chính xác.Nếu với 1 loại fond khác thì kết quả sẽ cao hơn do chữ l và i ở fond khác giống nhau là < 50%.
+- Như vậy phương pháp trọng số vùng đạt tỉ lệ cao nhất. Tưởng chừng đây là phương pháp dễ thực hiện nhất đơn giản nhất  tuy nhiên lại đạt được độ chính xác trong nhận dạng là cao nhất do khi ta lấy đặc trưng ta phân các phương pháp này thành các vùng ảnh có kích thước là 2x2 rất bé nên ta có chẳng hạn chữ d và đ ta sẻ có 2 vector hoàn toàn khác nhau và từ đó ta sẽ phân biệt được 2 chữ này khá là chính xác. Ta sẽ chọn phương pháp này dể thực hiện các tiến trình tiếp theo cho các fond chữ và phần dấu. Tưởng chừng đây là công việc đơn giản nhưng chiếm khá nhiều thời gian từ việc lấy mẫu lấy trích đặc trưng vecto support và training kiểm tra rất nhiều phương pháp để chọn ra phương pháp hợp lí nhất.
