@@ -1,0 +1,21 @@
+Vì có rất nhiều biển báo giao thông. Trong trường hợp này ta tiến hành lấy mẫu và nhận dạng cho 20 biển báo như bên dưới.
+Có hai điểm khác biệt về kiểu nhận dạng chữ viết trong bài trước và kiểu nhận dạng biển báo giao thông trong bài này, phụ thuộc vào đặc tính của đối tượng được nhận dạng. Trước tiên ta tiến hành phân tích hình dạng các biển báo giao thông.
+Có 6 loại hình cơ bản như bên dưới.
+
+Một trong những phương pháp tốt nhất cho việc phân biệt 6 nhóm biển báo trên là phương pháp chu tuyến. Tức là tính khoảng cách từ biên của ảnh đến điểm đen đầu tiên.
+Tuy nhiên chúng ta không chỉ áp dụng phương pháp này vì ngoài việc phân biệt 6 nhóm trên với nhau chúng ta không thể phân biệt được từng biển báo gia thông cụ thể. Nghĩa là ngoài việc phân biệt hình dạng biến báo ta không thể phân biệt bên trong cho các ảnh có cùng hình dạng.
+Ví dụ:
+
+Ta sử dụng 2 phương pháp kết hợp đó là Chu tuyến + trọng số vùng.
+Trong đó
+Chu tuyến: Nhận dạng đường bào của biển báo phân biện 6 loại trên.
+Trọng số vùng: Phân biệt rõ các đặc điểm bên trong của hình ảnh.
+Tất cả các ảnh lấy mẫu sẽ được resize  về kích thước 80x80.
+Vậy làm thế nao để xử lí những ảnh như hình bên dưới.
+
+Khi chuyển ảnh từ mã nhị phân sang ảnh xám. Việc ta cần làm là đặt các ngưỡng chuyển đổi.
+Ví dụ:
+Điểm có giá trị trên 155 sẽ mang giá trị 255.
+Điểm có giá trị dưới 155 sẽ mang giá trị 0.
+Việc náy giúp giải quyết các vấn đề liên quan đến các biển ưu tiên.
+
