@@ -1,0 +1,39 @@
+ Sử dụng từ điển trong việc cải thiện độ chính xác của quá trình hậu nhận dạng
+Chẳng hạn ta có câu nói: 
+Tô1 đi học.
+Trong câu trên chủ ngữ tôi đã bị sai lỗi cú pháp. Để việc hậu xử lí đạt hiệu quả chúng ta cần có 1 bộ từ điển dạng file text chứa tất cả các kí tự cần có. Ở đây em phân thành 4 loại từ điển bao gồm:
+•	Từ điển 1 từ
+•	Từ điển từ ghép (2 tiếng)
+•	Từ điển từ ghép cụm 3 tiếng
+•	Từ điển từ ghép cụm 4 tiếng
+•	Từ điển từ viết tắt hoặc tên riêng
+Với loại từ điển 1 tiếng và từ viết tắt hoặc tên riêng nhất định phải chứa hầu hết các từ trong bộ tiếng việt. Chúng ta có thể trích xuất từ các bài báo trên các trang báo online. Các từ điển này sẽ giúp chúng ta kiểm tra lỗi cú pháp của từ đơn. Chẳng hạn ví dụ bên trên. Từ tô1 là từ sai cú pháp. 
+Với loại từ điển từ 2 từ trở lên sẽ giúp chúng ta kiểm tra lỗi ngữ nghĩa. Một lỗi sai cơ bản mà từ điễn 1 từ không thể phát hiện đó là kiểm tra chính xác lỗi ngữ nghĩa.
+Chẳng hạn ta có từ “chung tôi”. Ở đây ta thiếu dấu sắc trong từ chung. Xét về cú pháp nó hoàn toàn đúng tuy nhiên về lỗi ngữ nghĩa, cụm từ trên đang bị sai lỗi ngữ nghĩa. Ở đây chúng ta cần sữa lại từ
+Chung ta  chúng ta.
+Tính hủ dụng của các loại từ điển còn lại tương tự như từ điển hiện tại.
+
+Bây giờ ta sẽ xem xét các loại lỗi có thể có sau quá trình nhận dạng chữ viết tiếng việt.
+Chúng ta có 3 bước kiểm tra tương ứng với 3 loại lỗi chính như bên dưới:
+Kiểm tra lỗi cú pháp
+Kiểm tra lỗi ngữ nghĩa
+Kiểm tra lỗi ngữ pháp
+
+Kiểm tra lỗi cú pháp
+Thuật toán giải quyết vấn đề này tương đối đơn giản. Đầu tiên, ta sẽ tra toàn bộ các từ trong văn bản kết quả (Sau nhận dạng) để xem xét liệu có xuất hiện từ nào không có trong từ điển hay không (Nghĩa là sai cú pháp).
+Giả sử ta có một câu chứa lỗi như bên dưới:
+Bầy thiê11 nga đang bơi lội.
+Trong câu trên từ “thiê11” đang bị sai. Sau khi tra không thấy từ trong văn bản. Ta sẽ nhảy sang bước 2
+Nghĩa là bắt đầu tập trung vào từ bị sai hiện tại.
+Bước 2 sẽ tra từ bị sai (Gọi là từ có thứ tự n trong văn bản) kết hợp với từ thứ n-1 trong từ điển 2 từ. Tương tự kết hợp với từ thứ n+1.
+Nếu kết quả kiểm tra giống trên 80%. Ta tiến hành lưu tất cả các từ match trên 80% vào 1 mảng. Từ quá trình thu thập từ điển trên các trang báo mạng, ta sẽ có được chỉ số xuất hiện thường xuyên của từng từ. Từ được chọn thay thế là từ có mật độ xuất hiện thường xuyên nhất.
+Đây không phải là giải pháp tối ưu nhất tuy nhiên nó là giải pháp đạt được hiệu quả tương dối tốt cho các văn bản thuộc lịnh vực đời sống (Nếu thu thập từ điển từ báo mạng), hoặc lĩnh vực khác (Phụ thuộc vào cách chúng ta thu thập dữ liệu).
+Cách làm này tương tự cho các từ điển trên 2 tiếng.
+
+
+
+Kiểm tra lỗi ngữ nghĩa.
+Ta lần lượt tra các từ trong văn bản kết hợp với từ đứng trước và đứng sau nó trong các loại từ điển 2,3,4 từ. Nếu có từ nào match thì nghĩa là từ hiện tại hoặc từ trước và sau nó không bị lỗi.
+Nếu sự kết hợp đó chính xác đến tên 90 % ta tiến hành sữa từ đó bằng từ trong từ điển.
+Kiểm tra lỗi ngữ pháp
+Việc kiểm tra này liên quan đến các dấu câu. Chẳng hạn nếu nhận thấy có dấu chấm. Từ sau dấu chấm sẽ được viết hoa. Nếu từ được tra nằm trong từ điển tên riêng nó sẽ tụ in hoa chữ đầu dòng…v…v
