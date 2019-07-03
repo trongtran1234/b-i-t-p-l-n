@@ -1,0 +1,72 @@
+Tìm hiểu về interconnection trong hệ thống SoC (Hay nói đúng hơn là bus)
+1.	GIỚI THIỆU
+Các thiết kế SOC thường liên quan đến việc tích hợp các lõi IP lại với nhau thành một hệ thống, mỗi lõi được thiết kế và verified riêng biệt. Các nhà tích hợp hệ thống có thể tối đa hóa việc tái sử dụng thiết kế để giảm chi phí và giảm rủi ro. Thường thì vấn đề quan trọng nhất là phương thức mà các lõi IP được kết nối với nhau.
+Bài viết này sẽ cung cấp một cái nhìn tổng quan về 2 kiến trúc được sử dụng phổ biến trong một hệ thống SOC: bus và network-on-chip (NOC). 
+Kiến trúc bus được phát triển cụ thể cho các thiết kế SOC được mô tả và so sánh. Tuy nhiên, đối với 1 hệ thống SoC có rất nhiều IP thì người ta sẽ ưu tiên sử dụng kiến trúc NOC
+
+
+Như trong hình trên ta có thể thấy hai loại interconnection chính đó là:
+Internal interconnection: Connect các IP trong hệ thống SoC.
+External interconnection: Connect giữa Chip SoC và các IP bên ngoài như ASIC hay DRAM.
+
+
+
+. Một NOC thường bao gồm một mức độ trừu tượng của giao diện, ẩn các kết nối vật lý cơ bản khỏi nhà thiết kế. Chúng tôi theo dõi việc sử dụng SOC hiện tại và đề cập đến kết nối như một chiếc xe buýt hoặc như một NOC được thực hiện bởi một công tắc. Trong NOC, công tắc có thể là một thanh ngang, kết nối được liên kết trực tiếp hoặc mạng chuyển mạch đa tầng. T ở đây là rất nhiều tài liệu kết nối xe buýt và máy tính. Các đơn vị được kết nối đôi khi được gọi là các tác nhân (trong xe buýt) hoặc các nút (trong tài liệu kết nối chung); chúng tôi chỉ đơn giản là sử dụng các đơn vị hạn. Do các kết nối SOC hiện tại thường liên quan đến một số lượng đơn vị khiêm tốn, nên chương này cung cấp một cái nhìn đơn giản về các lựa chọn thay thế kết nối. Một điều trị toàn diện về kiến trúc truyền thông trên chip có sẵn ở nơi khác [193]. Để thảo luận chung về các mạng kết nối máy tính, hãy xem bất kỳ văn bản tiêu chuẩn nào
+2.	Tổng quan về kiến trúc của interconnection
+Hình bên dưới mô tả một hệ thống gồm một mô-đun SOC. Mô-đun SOC thường chứa một số khối IP, một hoặc nhiều trong số đó là bộ vi xử lý. Ngoài ra, có nhiều loại bộ nhớ trên chip như bộ nhớ cache, bộ nhớ lưu trữ dữ liệu hoặc bộ nhớ lưu trữ tập lệnh. Các khối IP khác nhau phục vụ cho các ứng dụng và các chức năng cụ thể, chẳng hạn như bộ xử lý đồ họa,  video decode hoặc bộ điều khiển mạng, được tích hợp trong SOC.
+     Hình 5.1 Sơ đồ khối đơn giản của mô-đun SOC trong ngữ cảnh hệ thống.
+
+Các khối IP trong mô-đun SOC cần liên lạc với nhau. Chúng thực hiện điều này thông qua các kết nối, được truy cập thông qua một đơn vị giao diện kết nối (ICU). ICU cho phép một giao thức giao diện chung cho tất cả các mô-đun SOC. Bên ngoài mô-đun SOC là các bộ nhớ ngoài, các thiết bị ngoại vi và các thiết bị lưu trữ dung lượng lớn. Do đó, chi phí và hiệu suất của hệ thống phụ thuộc vào cả cấu trúc kết nối trên chip và ngoài chip. Chọn một kiến trúc kết nối phù hợp đòi hỏi sự hiểu biết về một số vấn đề ở cấp hệ thống và các thông số kỹ thuật. Bên dưới là một số thông số kĩ thuật:
+   1. Băng thông truyền: Tốc độ truyền thông tin giữa một mô-đun và môi trường xung quanh mà nó hoạt động. Thường được đo bằng số byte được transfer trên mỗi đơn vị thời gian(giây).
+Yêu cầu băng thông của mô-đun chỉ ra ở mức độ lớn loại kết nối được yêu cầu để đạt được thông số kỹ thuật thông lượng chung của hệ thống.
+2. Độ trễ truyền thông: là thời gian trễ của  mô-đun khi bắt đầu gửi dữ liệu cho đến khi nhận được phản hồi từ module nhận. Độ trễ có thể quan trọng hoặc không đối với hiệu suất của hệ thống tổng thể. Ví dụ, độ trễ lớn trong ứng dụng truyền phát video thường ít hoặc không ảnh hưởng đến trải nghiệm của người dùng. Xem một bộ phim muộn hơn vài giây so với khi nó thực sự được phát sóng là không ảnh hưởng nhiều. Ngược lại, ngay cả những độ trễ nhỏ, không lường trước được trong giao thức di động hai chiều có thể khiến cho việc thực hiện một cuộc trò chuyện gần như không thể thực hiện được. Ví dụ: A nói với B. Sau 3s sau B nhận được và B phản hồi A. Hoặc vấn đề xử lí ảnh , nhận dạng hình ảnh trong các chip ô tô tự lái. Nếu việc xử lí nhận dạng có độ trễ lớn, Xe không thể xử lí kịp tình huống và tai nạn có thể xảy ra. 
+
+3.	Master và slave: Những điều khoản này liên quan đến khả năng một master có thể bắt đầu khởi tạo các request hoặc các slave có thể response lại khi nhận được 1 request từ master. Một master, chẳng hạn như bộ vi xử lý, kiểm soát các giao dịch giữa chính nó và các mô-đun khác. Một slave, chẳng hạn như bộ nhớ, đáp ứng các yêu cầu từ master gửi xuống. Một thiết kế SOC thường có một số master và nhiều slave.
+4. Yêu cầu đồng thời. Số lượng các kênh truyền (hay nói đúng hơn là nhiều master cùng có thể gửi đi request tại cùng 1 thời điểm) độc lập hoạt động song song đồng thời. Thông thường, các kênh bổ sung cải thiện băng thông hệ thống. 
+5.Package or bus transaction. Size dữ liệu và định nghĩa thông tin được truyền trong một giao dịch. Đối với kiểu bus, địa chỉ này bao gồm một địa chỉ với các bit điều khiển (đọc / ghi, v.v.) và dữ liệu. Trong NOC điều này được gọi là một gói. Gói bao gồm một tiêu đề (địa chỉ và tín hiệu điều khiển) và dữ liệu. 
+6. ICU. Trong một kết nối, đơn vị này quản lý giao thức kết nối và giao dịch vật lý. Nó có thể đơn giản hoặc phức tạp, bao gồm cả bộ đệm và quản lý giao dịch bên ngoài. Nếu lõi IP yêu cầu chuyển đổi giao thức để truy cập vào bus, đơn vị này được gọi là bus wrapper. Trong NOC, đơn vị này quản lý giao thức vận chuyển gói từ lõi IP sang mạng chuyển mạch. Nó cung cấp bộ đệm gói và truyền giao dịch ra bên ngoài. 
+7. Nhiều miền clock. Các mô-đun IP khác nhau có thể hoạt động ở các tần số clock khác nhau và tập dữ liệu khác nhau. Ví dụ, một máy quay video ghi lại dữ liệu pixel ở tốc độ được điều chỉnh bởi tiêu chuẩn video được sử dụng, trong khi tốc độ xung nhịp của bộ xử lý thường được xác định bởi công nghệ và thiết kế kiến trúc. Do đó, các khối IP bên trong SOC thường cần hoạt động ở các tần số xung nhịp khác nhau, tạo ra các vùng tần số riêng biệt được gọi là miền clock. Giao thoa giữa các miền clock có thể gây ra sự cố bế tắc và bất đồng bộ nếu không thiết kế cẩn thận.
+
+ Bằng cách đưa ra một tập hợp các thông số kỹ thuật, một nhà thiết kế có thể tìm thấy các yêu cầu khác nhau về băng thông, độ trễ, tính đồng thời và miền clock của các kiến trúc kết nối khác nhau, như bus và NOC. Một số ví dụ trong số này được đưa ra trong Bảng 5.1. Các ví dụ khác bao gồm Avalon Bus cho Altera eld - mảng cổng có thể lập trình (FPGA) [10], Kết nối Wishbone để sử dụng trong các lõi và nền tảng nguồn mở [189] và giao thức AXI4- Stream để thực hiện FPGA [74] . Thiết kế kiến trúc kết nối cho SOC đòi hỏi phải xem xét cẩn thận nhiều yêu cầu, chẳng hạn như các yêu cầu được liệt kê ở trên. Phần còn lại của chương này giới thiệu về hai kiến trúc kết nối: xe buýt và NOC.
+
+
+Bus: KIẾN TRÚC CƠ BẢN
+Hiệu năng của một hệ thống máy tính phụ thuộc rất nhiều vào đặc điểm của kiến trúc kết nối giữa các thành phần bên trong nó. Một hệ thống bus được xem xét như là một thiết kế có thể điều tiết việc truyền các tập lệnh và dữ liệu giữa bộ nhớ và bộ xử lý, hoặc giữa các thiết bị ngoại vi và bộ nhớ. Nút thắt truyền thông này là tâm điểm chú ý của nhiều nhà sản xuất hệ thống và vi xử lý, trong ba thập kỷ qua, đã áp dụng một số tiêu chuẩn bus khác nhau. Chúng bao gồm bus VME phổ biến và Intel Multibus - II. Đối với các hệ thống trên bo mạch và máy tính cá nhân, quá trình tiến hóa bao gồm bus kiến trúc tập lệnh (ISA), bus EISA và các bus PCI và PCI Express hiện đang thịnh hành. Tất cả các tiêu chuẩn bus này được thiết kế để kết nối các mạch tích hợp (IC) với nhau trên bảng mạch in (PCB) hoặc PCB trong quá trình thực hiện trên hệ thống. Mặc dù các tiêu chuẩn bus này đã phục vụ cộng đồng điện toán tốt, nhưng chúng không đặc biệt phù hợp với công nghệ SOC. Ví dụ, tất cả các xe buýt cấp hệ thống như vậy được thiết kế để lái một bảng nối đa năng, trong hệ thống gắn trên giá hoặc trên bo mạch chủ máy tính. Điều này áp đặt nhiều hạn chế trên kiến trúc xe buýt. Để bắt đầu, số lượng tín hiệu khả dụng thường bị hạn chế bởi số lượng pin giới hạn trên gói IC hoặc số chân trên đầu nối PCB. Thêm một pin phụ trên một gói hoặc một kết nối là tốn kém. Hơn nữa, tốc độ mà xe buýt có thể hoạt động thường bị giới hạn bởi tải điện dung cao trên mỗi tín hiệu xe buýt, điện trở của các tiếp điểm trên đầu nối và nhiễu điện từ được tạo ra bởi các tín hiệu chuyển mạch nhanh như vậy truyền xuống đường ray PCB. Cuối cùng, trình điều khiển cho xe buýt trên chip có thể nhỏ hơn nhiều, tiết kiệm diện tích và năng lượng. Trước khi mô tả chi tiết hoạt động của xe buýt và cấu trúc xe buýt, chúng tôi cung cấp, trong Bảng 5.2, so sánh hai kiến trúc kết nối xe buýt khác nhau, cho thấy ước tính kích thước và tốc độ cho một nô lệ xe buýt điển hình.
+5.3.1 Trọng tài và giao thức C về mặt tình cờ, xe buýt chỉ là dây được chia sẻ bởi nhiều đơn vị. Trong thực tế, một số logic phải có mặt để cung cấp việc sử dụng xe buýt có trật tự; mặt khác, hai đơn vị có thể gửi tín hiệu cùng một lúc, gây ra các tín hiệu. Khi một đơn vị sử dụng độc quyền xe buýt, đơn vị được cho là sở hữu xe buýt. Các đơn vị có thể là các đơn vị chủ có khả năng có thể yêu cầu quyền sở hữu hoặc các đơn vị nô lệ thụ động và chỉ đáp ứng các yêu cầu. Bus master là đơn vị bắt đầu giao tiếp trên bus máy tính hoặc đường dẫn đầu vào / đầu ra (I / O). Trong SOC, bus master là một thành phần trong chip, chẳng hạn như bộ xử lý. Các đơn vị khác được kết nối với một bus trên chip, chẳng hạn như các thiết bị I / O và các thành phần bộ nhớ, là các nô lệ. Người chủ xe buýt điều khiển các tuyến xe buýt bằng cách sử dụng các địa chỉ nô lệ cụ thể và tín hiệu điều khiển. Hơn nữa, chủ xe buýt cũng kiểm soát ﬂ ow tín hiệu dữ liệu trực tiếp giữa chủ và nô lệ.
+  BẢNG 5.2 So sánh các kiến trúc kết nối xe buýt [198] Vùng tốc độ tiêu chuẩn (MHz) (rbe *) AMBA (phụ thuộc triển khai) 166 - 400 175.000 CoreConnect 66/133/183 160.000 * rbe = r egister bit tương đương; ước tính là gần đúng và thay đổi theo việc thực hiện.
+c05.indd 170 c05.indd 170 5/4/2011 9:54:27 sáng 5/4/2011 9:54:27 sáng
+Arbitrate.
+ Arbitrate (Hay còn gọi là bộ trọng tài, bộ phân xử). Tất cả các transaction đi qua bus đến 1 slave nhất định (Điều này nghĩa là có nhiều đường data từ các master khác nhau access đến 1 slave cố định) bộ arbitrate sẽ được đặt trước các slave này.  Sau đó, bộ phân xử này sẽ cấp quyền xem liệu đường dữ liệu nào được gửi đi qua bus. Giao thức bus là một bộ quy tắc thống nhất để truyền thông tin giữa hai hoặc nhiều thiết bị qua hệ thống bus. Giao thức xác định như sau:
+• Loại và thứ tự của dữ liệu được gửi; 
+• Cách master thông báo nó đã hoàn tất việc gửi thông tin; 
+• Phương pháp nén dữ liệu được sử dụng, nếu có; 
+• Cách  slave thông báo rằng nó đã nhận thông tin thành công; 
+ • Cách khối phân xử thực hiện để giải quyết các tranh chấp trên bus, ưu tiên và loại kiểm tra lỗi sẽ được sử dụng (Hay còn gọi là fusa function).
+
+
+Cầu 
+
+Cầu bus là một mô-đun nhằm kết nối hai bus lại với nhau, không nhất thiết phải cùng loại. Một cầu điển hình có thể phục vụ ba chức năng:
+1. Nếu hai bus sử dụng các giao thức khác nhau (ví dụ AXI và APB), một cầu nối bus cung cấp các định dạng cần thiết và chuyển đổi các giao thức đó. 
+2. Một cầu được chèn vào giữa hai bus để phân đoạn chúng và giữ cho các bus được chứa trong các phân đoạn. Điều này cải thiện sự tương tranh: cả hai xe buýt có thể hoạt động cùng một lúc.
+ 3. Một cầu thường chứa bộ đệm và các mạch điều khiển liên quan cho phép lưu trữ các transaction. Khi một master bắt đầu chuyển dữ liệu sang slave trên một bus qua cầu, dữ liệu sẽ được lưu tạm thời trong bộ đệm, cho phép master tiến hành các giao dịch tiếp theo trước khi dữ liệu thực sự được ghi vào slave. Bằng cách cho phép các giao dịch hoàn thành nhanh chóng, một cầu bus có thể cải thiện đáng kể hiệu năng hệ thống.
+
+
+
+   5.3.3 Cấu trúc xe buýt vật lý Bản chất của giao dịch xe buýt phụ thuộc vào cấu trúc xe buýt vật lý (số đường dẫn dây, thời gian chu kỳ, v.v.) và giao thức (đặc biệt là hỗ trợ trọng tài). Nhiều người dùng xe buýt phải được phân xử để truy cập vào xe buýt trong bất kỳ chu kỳ nhất định. Vì vậy, trọng tài là một phần của giao dịch xe buýt. Các trọng tài đơn giản có một chu kỳ yêu cầu trong đó các tín hiệu từ người dùng được ưu tiên, theo sau là chu trình xác nhận chọn người dùng. Các trọng tài phức tạp hơn thêm các dòng điều khiển xe buýt và logic liên quan để mỗi người dùng nhận thức được trạng thái và mức độ ưu tiên của xe buýt đang chờ xử lý. Trong các thiết kế như vậy, không có chu kỳ nào được thêm vào giao dịch xe buýt để phân xử.
+   Các loại xe buýt Xe buýt có thể được thay đổi hoặc phân chia (địa chỉ và dữ liệu). Trong xe buýt đơn, địa chỉ ban đầu được truyền trong một chu kỳ xe buýt theo sau là một hoặc nhiều chu kỳ dữ liệu; xe buýt phân chia có xe buýt riêng cho từng chức năng này. Ngoài ra, các xe buýt có thể là giao dịch đơn lẻ hoặc thuê. Xe buýt thuê được chiếm dụng bởi một giao dịch chỉ trong các địa chỉ liên quan hoặc chu kỳ dữ liệu. Những chiếc xe buýt như vậy có bộ thu đơn vị đệm các tin nhắn và tạo các giao dịch dữ liệu và địa chỉ riêng biệt.
+
+
+
+
+
+
+
+
+	NOC LÀ GÌ?
+ Khi thuật ngữ SOC đã phát triển, dường như chỉ có hai chiến lược kết nối: xe buýt hoặc NOC. Vậy chính xác thì NOC là gì? Giáo sư Nurmi (trong một bài trình bày được báo cáo bởi Leibson [156]) đã tóm tắt các đặc điểm của NOC:
+1. NOC không chỉ là một chiếc xe buýt dùng chung. 2. NOC cung cấp các kết nối điểm-điểm giữa bất kỳ hai máy chủ nào được gắn vào mạng bằng các công tắc thanh ngang hoặc thông qua các công tắc dựa trên nút. 3. NOC cung cấp băng thông tổng hợp cao thông qua các liên kết song song.
+ 4 . Trong NOC, giao tiếp tách biệt với tính toán. 5. NOC sử dụng cách tiếp cận phân lớp cho truyền thông, mặc dù có ít lớp mạng do sự phức tạp và chi phí. 6. N OC hỗ trợ đường ống và cung cấp bộ đệm dữ liệu trung gian giữa người gửi và người nhận.
+Trong bối cảnh SOC khi nhà thiết kế tìm ra công nghệ xe buýt cung cấp băng thông hoặc kết nối không cần thiết, sự thay thế rõ ràng là một loại công tắc. Bất kỳ kết nối chuyển mạch được thiết kế tốt nào cũng sẽ đáp ứng rõ ràng các điểm 2, 3, 4 và 6. Điểm 5 không bị ảnh hưởng bởi các kết nối chuyển mạch ad hoc, trong đó các nút xử lý và kết nối chuyển mạch được giao thoa bởi thiết kế chuyên dụng, phổ biến. Nhưng trong SOC, việc kết hợp nhiều IP của nhà cung cấp khác nhau liên kết với nhau gần như không bao giờ xảy ra. Nhà thiết kế chọn một giao diện truyền thông chung (lớp) tách biệt với nút bộ xử lý.
+
+
